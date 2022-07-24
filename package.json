@@ -10,14 +10,14 @@
   "license": "Unlicense",
   "scripts": {
     "compile:dev": "tsc --watch --project tsconfig.json",
-    "start:dev": "nodemon dist/index.js",
-    "dev": "npm-run-all *:dev",
     "prepare": "husky install && husky add .husky/pre-commit 'npx lint-staged' && git add .husky/pre-commit",
     "lint": "eslint --ext .js,.cjs,.mjs,.ts,.cts,.mts --fix --ignore-path .gitignore --cache",
     "prettify": "prettier --write --ignore-path .gitignore --plugin-search-dir=."
   },
   "devDependencies": {
     "@tsconfig/node16": "^1.0.3",
+    "@types/sharp": "^0.30.4",
+    "@types/to-ico": "^1.1.1",
     "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "^5.30.7",
     "eslint": "^8.20.0",
@@ -27,9 +27,11 @@
     "eslint-plugin-import": "^2.26.0",
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
-    "nodemon": "^2.0.19",
-    "npm-run-all": "^4.1.5",
     "prettier": "^2.7.1",
     "typescript": "^4.7.4"
+  },
+  "dependencies": {
+    "sharp": "^0.30.7",
+    "to-ico": "^1.1.5"
   }
 }
