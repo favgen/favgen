@@ -97,7 +97,11 @@ function getIconBuffer(
   }
 }
 
-async function produceIcons(inputSvgFilePath: string, outputDirPath: string) {
+async function produceIcons(
+  inputSvgFilePath: string,
+  outputDirPath: string,
+  paletteSize: number,
+) {
   await fs.access(inputSvgFilePath);
 
   try {
@@ -113,7 +117,10 @@ async function produceIcons(inputSvgFilePath: string, outputDirPath: string) {
   const rawIconBuf = await fs.readFile(inputSvgFilePath);
 
   const iconsGenerationSeries = iconConfigs.map(async (cfg) => {
-    const outputBuffer = await getIconBuffer(rawIconBuf, cfg);
+    const iconCfg = cfg.name.endsWith("png")
+      ? { ...cfg, colorsPaletteSize: paletteSize }
+      : cfg;
+    const outputBuffer = await getIconBuffer(rawIconBuf, iconCfg);
 
     return fs.writeFile(path.join(outputDirPath, cfg.name), outputBuffer);
   });
