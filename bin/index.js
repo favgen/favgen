@@ -18,8 +18,10 @@ program
       "__favicons__",
     ),
   )
+  .option("--prefix <name>", "Icon prefix", "favicon")
   .option("--colors <number>", "Color paleete size, between 2 and 256", 64)
-  .action((filepath, { output: outputDir, colors }) => {
+  .option("--include16", "Produce 16x16 .ico file", false)
+  .action((filepath, { output: outputDir, prefix, colors, include16 }) => {
     const colorsPaletteSize = parseInt(colors, 10);
     const isValidPaletteSize =
       Number.isNaN(colorsPaletteSize) ||
@@ -35,7 +37,7 @@ program
     const outputPath = path.isAbsolute(outputDir)
       ? outputDir
       : path.join(CWD, outputDir);
-    produceIcons(inputPath, outputPath, colorsPaletteSize);
+    produceIcons(inputPath, outputPath, prefix, colorsPaletteSize, include16);
   });
 
 program.parse();

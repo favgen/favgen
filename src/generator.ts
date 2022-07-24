@@ -11,7 +11,7 @@ type IconConfig = {
   padding?: number;
 };
 
-const iconConfigs: IconConfig[] = [
+const baseIconConfigs: IconConfig[] = [
   {
     name: "favicon.svg",
   },
@@ -100,7 +100,9 @@ function getIconBuffer(
 async function produceIcons(
   inputSvgFilePath: string,
   outputDirPath: string,
-  paletteSize: number,
+  prefix: string = "favicon",
+  paletteSize: number = 64,
+  include16: boolean = false,
 ) {
   await fs.access(inputSvgFilePath);
 
@@ -116,21 +118,42 @@ async function produceIcons(
 
   const rawIconBuf = await fs.readFile(inputSvgFilePath);
 
+  let iconConfigs = baseIconConfigs.map((cfg) => {
+    const iconName = cfg.name.replace("favicon", prefix);
+    return cfg.name.endsWith("png")
+      ? { ...cfg, colorsPaletteSize: paletteSize, name: iconName }
+      : { ...cfg, name: iconName };
+  });
+  if (include16) {
+    const ico = iconConfigs.find((cfg) =>
+      cfg.name.endsWith(".ico"),
+    ) as IconConfig;
+    const icoNameWithoutExt = ico.name.slice(0, -4);
+    iconConfigs.push({ ...ico, name: `${icoNameWithoutExt}-32.ico` });
+    iconConfigs.push({
+      ...ico,
+      name: `${icoNameWithoutExt}-16.ico`,
+      pxSize: 16,
+    });
+    iconConfigs = iconConfigs.filter((cfg) => cfg !== ico);
+  }
+
   const iconsGenerationSeries = iconConfigs.map(async (cfg) => {
+    const iconName = cfg.name.replace("favicon", prefix);
     const iconCfg = cfg.name.endsWith("png")
-      ? { ...cfg, colorsPaletteSize: paletteSize }
-      : cfg;
+      ? { ...cfg, colorsPaletteSize: paletteSize, name: iconName }
+      : { ...cfg, name: iconName };
     const outputBuffer = await getIconBuffer(rawIconBuf, iconCfg);
 
-    return fs.writeFile(path.join(outputDirPath, cfg.name), outputBuffer);
+    return fs.writeFile(path.join(outputDirPath, iconCfg.name), outputBuffer);
   });
 
   await Promise.all(iconsGenerationSeries);
 
   const manifestFile = {
     icons: [
-      { src: "/favicon-192.png", type: "image/png", sizes: "192x192" },
-      { src: "/favicon-512.png", type: "image/png", sizes: "512x512" },
+      { src: `/${prefix}-192.png`, type: "image/png", sizes: "192x192" },
+      { src: `/${prefix}-512.png`, type: "image/png", sizes: "512x512" },
     ],
   };
   const manifestText = JSON.stringify(manifestFile, null, 2);
