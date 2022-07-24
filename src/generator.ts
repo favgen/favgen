@@ -3,6 +3,7 @@ import path from "path";
 import sharp, { Sharp } from "sharp";
 import toIco from "to-ico";
 import { optimize as optimizeSvg } from "svgo";
+import isSvg from "is-svg";
 
 type IconConfig = {
   name: string;
@@ -98,13 +99,13 @@ function getIconBuffer(
 }
 
 async function produceIcons(
-  inputSvgFilePath: string,
+  inputFilePath: string,
   outputDirPath: string,
   prefix: string = "favicon",
   paletteSize: number = 64,
   include16: boolean = false,
 ) {
-  await fs.access(inputSvgFilePath);
+  await fs.access(inputFilePath);
 
   try {
     await fs.access(outputDirPath);
@@ -116,13 +117,23 @@ async function produceIcons(
     }
   }
 
-  const rawIconBuf = await fs.readFile(inputSvgFilePath);
+  const rawIconBuf = await fs.readFile(inputFilePath);
+  const isSvgBuf = isSvg(rawIconBuf);
 
   let iconConfigs = baseIconConfigs.map((cfg) => {
-    const iconName = cfg.name.replace("favicon", prefix);
-    return cfg.name.endsWith("png")
-      ? { ...cfg, colorsPaletteSize: paletteSize, name: iconName }
-      : { ...cfg, name: iconName };
+    const mappedCfg = { ...cfg };
+    if (!isSvgBuf && mappedCfg.name.endsWith(".svg")) {
+      mappedCfg.name = mappedCfg.name.replace(".svg", ".png");
+      mappedCfg.pxSize = 32;
+    }
+
+    mappedCfg.name = mappedCfg.name.replace("favicon", prefix);
+
+    if (mappedCfg.name.endsWith(".png")) {
+      mappedCfg.colorsPaletteSize = paletteSize;
+    }
+
+    return mappedCfg;
   });
   if (include16) {
     const ico = iconConfigs.find((cfg) =>

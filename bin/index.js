@@ -10,8 +10,8 @@ const program = new Command();
 program.name(PKG.name).description(PKG.description).version(PKG.version);
 
 program
-  .description("Produce a set of favicons from SVG input")
-  .argument("<inputPath>", "SVG icon path")
+  .description("Produce a set of favicons from a single input file.")
+  .argument("<inputPath>", "Input icon path")
   .addOption(
     new Option("-o, --output <path>", "Output directory path").default(
       path.join(CWD, "__favicons__"),

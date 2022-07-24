@@ -1,7 +1,7 @@
 {
   "name": "favgen",
   "version": "0.0.0-alpha1",
-  "description": "CLI tool to generate a set of favicons from a single SVG input.",
+  "description": "CLI tool to generate a set of favicons from a single input file.",
   "main": "index.js",
   "keywords": [
     "favicon"
@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "commander": "^9.4.0",
+    "is-svg": "^4.3.2",
     "sharp": "^0.30.7",
     "svgo": "^2.8.0",
     "to-ico": "^1.1.5"
