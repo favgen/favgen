@@ -23,8 +23,7 @@
     "build": "tsc --project tsconfig.json",
     "build:dev": "tsc --watch --project tsconfig.json",
     "prepublishOnly": "npm run build",
-    "postinstall": "npm run build",
-    "prepare": "husky install && husky add .husky/pre-commit 'npx lint-staged' && git add .husky/pre-commit",
+    "postinstall": "husky install && husky add .husky/pre-commit 'npx lint-staged' && git add .husky/pre-commit && npm run build",
     "lint": "eslint --ext .js,.cjs,.mjs,.ts,.cts,.mts --fix --ignore-path .gitignore --cache",
     "prettify": "prettier --write --ignore-path .gitignore --plugin-search-dir=."
   },
