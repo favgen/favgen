@@ -31,6 +31,8 @@ const iconConfigs = [
 async function produceIcons(inputSvgFilePath: string, outputDirPath: string) {
   const icon = sharp(inputSvgFilePath);
 
+  await fs.access(inputSvgFilePath);
+
   try {
     await fs.access(outputDirPath);
   } catch (e) {
