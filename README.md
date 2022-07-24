@@ -1,4 +1,4 @@
-![npm](https://img.shields.io/npm/v/favgen?style=flat-square)
+[![npm](https://img.shields.io/npm/v/favgen?style=flat-square)](https://www.npmjs.com/package/favgen)
 
 This is a simple CLI tool to generate an optimized set of favicons from a single input file. Icons are optimized in terms of both size and quantity (nowadays you don't that many of them). They are produced according to [this article](https://evilmartians.com/chronicles/how-to-favicon-in-2021-six-files-that-fit-most-needs) which served as an inspiration for the tool.
 
