@@ -43,7 +43,7 @@ async function produceIcons(inputSvgFilePath: string, outputDirPath: string) {
     }
   }
 
-  iconConfigs.forEach(async (cfg) => {
+  const iconsGenerationSeries = iconConfigs.map(async (cfg) => {
     const { pxSize, colorsPaletteSize, padding, name } = cfg;
     let outputIcon = icon
       .clone()
@@ -66,6 +66,8 @@ async function produceIcons(inputSvgFilePath: string, outputDirPath: string) {
 
     return fs.writeFile(path.join(outputDirPath, name), outputBuffer);
   });
+
+  await Promise.all(iconsGenerationSeries);
 
   const manifestFile = {
     icons: [
