@@ -1,5 +1,5 @@
 const path = require("path");
-const { Command, Option, InvalidArgumentError } = require("commander");
+const { Command, InvalidArgumentError } = require("commander");
 const PKG = require("../package.json");
 const produceIcons = require("../lib/generator").default;
 
@@ -12,12 +12,7 @@ program.name(PKG.name).description(PKG.description).version(PKG.version);
 program
   .description("Produce a set of favicons from a single input file.")
   .argument("<inputPath>", "Input icon path")
-  .addOption(
-    new Option("-o, --output <path>", "Output directory path").default(
-      path.join(CWD, "__favicons__"),
-      "__favicons__",
-    ),
-  )
+  .option("-o, --output <path>", "Output directory path", "__favicons__")
   .option("--prefix <name>", "Icon prefix", "favicon")
   .option("--colors <number>", "Color paleete size, between 2 and 256", 64)
   .option("--include16", "Produce 16x16 .ico file", false)
