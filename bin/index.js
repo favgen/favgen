@@ -1,5 +1,5 @@
 const path = require("path");
-const { Command } = require("commander");
+const { Command, Option } = require("commander");
 const PKG = require("../package.json");
 const produceIcons = require("../lib/generator").default;
 
@@ -12,10 +12,11 @@ program.name(PKG.name).description(PKG.description).version(PKG.version);
 program
   .description("Produce a set of favicons from SVG input")
   .argument("<inputPath>", "SVG icon path")
-  .option(
-    "-o, --output <outputPath>",
-    "Output directory path",
-    path.join(CWD, "__favicons__"),
+  .addOption(
+    new Option("-o, --output <outputPath>", "Output directory path").default(
+      path.join(CWD, "__favicons__"),
+      "__favicons__",
+    ),
   )
   .action((filepath, { output: outputDir }) => {
     const inputPath = path.join(CWD, filepath);
