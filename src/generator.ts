@@ -1,9 +1,20 @@
 import fs from "fs/promises";
 import path from "path";
-import sharp from "sharp";
+import sharp, { Sharp } from "sharp";
 import toIco from "to-ico";
+import { optimize as optimizeSvg } from "svgo";
 
-const iconConfigs = [
+type IconConfig = {
+  name: string;
+  pxSize?: number;
+  colorsPaletteSize?: number;
+  padding?: number;
+};
+
+const iconConfigs: IconConfig[] = [
+  {
+    name: "favicon.svg",
+  },
   {
     // no colors palette size otherwise its color profile is off
     // which causes problems with converting to ico
@@ -28,9 +39,65 @@ const iconConfigs = [
   },
 ];
 
-async function produceIcons(inputSvgFilePath: string, outputDirPath: string) {
-  const icon = sharp(inputSvgFilePath);
+function buildPng(
+  rawBuffer: Buffer,
+  { pxSize, colorsPaletteSize, padding }: IconConfig,
+): Sharp {
+  const outputIcon = sharp(rawBuffer)
+    .resize(pxSize, pxSize)
+    .png({ compressionLevel: 9, colors: colorsPaletteSize });
+  return padding
+    ? outputIcon.extend({
+        top: padding,
+        left: padding,
+        bottom: padding,
+        right: padding,
+        background: { r: 0, g: 0, b: 0, alpha: 0 },
+      })
+    : outputIcon;
+}
 
+function getPngBuffer(rawBuffer: Buffer, cfg: IconConfig): Promise<Buffer> {
+  return buildPng(rawBuffer, cfg).toBuffer();
+}
+
+function getIcoBuffer(rawBuffer: Buffer, cfg: IconConfig): Promise<Buffer> {
+  return buildPng(rawBuffer, cfg)
+    .toBuffer()
+    .then((buf) => toIco(buf));
+}
+
+function getSvgBuffer(rawBuffer: Buffer): Buffer {
+  const optimizedSvg = optimizeSvg(rawBuffer, {
+    multipass: true,
+  });
+
+  if (optimizedSvg.error !== undefined) {
+    throw Error(optimizedSvg.error);
+  }
+
+  return Buffer.from(optimizedSvg.data);
+}
+
+function getIconBuffer(
+  rawBuffer: Buffer,
+  cfg: IconConfig,
+): Buffer | Promise<Buffer> {
+  const iconName = cfg.name;
+  const iconExtension = path.extname(iconName);
+  switch (iconExtension) {
+    case ".svg":
+      return getSvgBuffer(rawBuffer);
+    case ".png":
+      return getPngBuffer(rawBuffer, cfg);
+    case ".ico":
+      return getIcoBuffer(rawBuffer, cfg);
+    default:
+      throw Error(`Extension ${iconExtension} is not recognized.`);
+  }
+}
+
+async function produceIcons(inputSvgFilePath: string, outputDirPath: string) {
   await fs.access(inputSvgFilePath);
 
   try {
@@ -43,28 +110,12 @@ async function produceIcons(inputSvgFilePath: string, outputDirPath: string) {
     }
   }
 
+  const rawIconBuf = await fs.readFile(inputSvgFilePath);
+
   const iconsGenerationSeries = iconConfigs.map(async (cfg) => {
-    const { pxSize, colorsPaletteSize, padding, name } = cfg;
-    let outputIcon = icon
-      .clone()
-      .resize(pxSize, pxSize)
-      .png({ compressionLevel: 9, colors: colorsPaletteSize });
-    if (padding) {
-      outputIcon = outputIcon.extend({
-        top: padding,
-        left: padding,
-        bottom: padding,
-        right: padding,
-        background: { r: 0, g: 0, b: 0, alpha: 0 },
-      });
-    }
+    const outputBuffer = await getIconBuffer(rawIconBuf, cfg);
 
-    let outputBuffer = await outputIcon.toBuffer();
-    if (name.endsWith(".ico")) {
-      outputBuffer = await toIco(outputBuffer);
-    }
-
-    return fs.writeFile(path.join(outputDirPath, name), outputBuffer);
+    return fs.writeFile(path.join(outputDirPath, cfg.name), outputBuffer);
   });
 
   await Promise.all(iconsGenerationSeries);

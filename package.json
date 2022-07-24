@@ -18,11 +18,13 @@
   "dependencies": {
     "commander": "^9.4.0",
     "sharp": "^0.30.7",
+    "svgo": "^2.8.0",
     "to-ico": "^1.1.5"
   },
   "devDependencies": {
     "@tsconfig/node16": "^1.0.3",
     "@types/sharp": "^0.30.4",
+    "@types/svgo": "^2.6.3",
     "@types/to-ico": "^1.1.1",
     "@typescript-eslint/eslint-plugin": "^5.30.7",
     "@typescript-eslint/parser": "^5.30.7",
