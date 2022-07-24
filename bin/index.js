@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const path = require("path");
 const { Command, InvalidArgumentError } = require("commander");
 const PKG = require("../package.json");
