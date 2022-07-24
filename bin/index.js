@@ -1,7 +1,7 @@
 const path = require("path");
 const { Command, InvalidArgumentError } = require("commander");
 const PKG = require("../package.json");
-const produceIcons = require("../lib/generator").default;
+const { produceIcons } = require("../lib");
 
 const CWD = process.cwd();
 
