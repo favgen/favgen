@@ -2,8 +2,8 @@
   "extends": "@tsconfig/node16/tsconfig.json",
   "compilerOptions": {
     "baseUrl": "./",
-    "outDir": "dist"
+    "outDir": "lib"
   },
-  "include": ["src/**/*", ".eslintrc.js"],
-  "exclude": ["node_modules", "**/*.spec.ts", "dist"]
+  "include": ["src/**/*", "bin/**/*", ".eslintrc.js"],
+  "exclude": ["node_modules", "**/*.spec.ts", "lib"]
 }
