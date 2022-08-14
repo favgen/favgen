@@ -1,14 +1,14 @@
 {
   "name": "favgen",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "CLI tool to generate a set of favicons from a single input file.",
   "keywords": [
     "favicon"
   ],
   "author": "islambeg",
   "license": "Unlicense",
-  "homepage": "https://github.com/favgen/favgen-cli",
-  "repository": "https://github.com/favgen/favgen-cli.git",
+  "homepage": "https://github.com/favgen/favgen",
+  "repository": "https://github.com/favgen/favgen.git",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "bin": "bin/index.js",

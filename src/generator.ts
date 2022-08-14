@@ -65,7 +65,7 @@ function getPngBuffer(rawBuffer: Buffer, cfg: IconConfig): Promise<Buffer> {
 function getIcoBuffer(rawBuffer: Buffer, cfg: IconConfig): Promise<Buffer> {
   return buildPng(rawBuffer, cfg)
     .toBuffer()
-    .then((buf) => toIco(buf));
+    .then((buf) => toIco(buf, { resize: true }));
 }
 
 function getSvgBuffer(rawBuffer: Buffer): Buffer {
