@@ -7,7 +7,7 @@ Use it like this: `npx favgen /path/to/input -o /path/to/output`.
 You can tweak the following settings by giving additional commands:
 - output directory by providing `-o` option with a path (`__favicon__` by default)
 - icon prefix by providing `--prefix` option with a name (`favicon` by default)
-- colors palette size by providing `--colors` with a number between 2 and 256
+- colors palette size by providing `--colors` with a number between 2 and 256 (64 by default)
 - producing 16x16 .ico file by setting `--include16` flag
 
 Input file can be in any of the following formats: JPEG, PNG, WebP, GIF, AVIF, TIFF or SVG (anything [sharp library](https://sharp.pixelplumbing.com/) accepts).
