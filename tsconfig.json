@@ -3,7 +3,9 @@
   "compilerOptions": {
     "baseUrl": "./",
     "outDir": "lib",
-    "declaration": true
+    "declaration": true,
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext"
   },
   "include": ["src/**/*", "bin/**/*", ".eslintrc.js"],
   "exclude": ["node_modules", "**/*.spec.ts", "lib"]

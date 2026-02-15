@@ -1,13 +1,43 @@
 import fs from "fs/promises";
 import os from "os";
 import path from "path";
-import type { HtmlTagDescriptor, Plugin, ResolvedConfig } from "vite";
 import produceIcons from "./generator";
 
 export type FavgenVitePluginOptions = {
   source: string;
   colors?: number;
   assetsPath?: string;
+};
+
+type HtmlTagDescriptor = {
+  tag: string;
+  attrs: Record<string, string>;
+  injectTo?: "head" | "body";
+};
+
+type ResolvedConfig = {
+  root: string;
+  base: string;
+};
+
+type EmitAsset = {
+  type: "asset";
+  fileName: string;
+  source: Buffer;
+};
+
+type PluginContext = {
+  emitFile: (asset: EmitAsset) => void;
+};
+
+type Plugin = {
+  name: string;
+  apply?: "build";
+  configResolved?: (resolvedConfig: ResolvedConfig) => void;
+  buildStart?: () => Promise<void>;
+  generateBundle?: (this: PluginContext) => void;
+  transformIndexHtml?: () => HtmlTagDescriptor[];
+  closeBundle?: () => Promise<void>;
 };
 
 type GeneratedAsset = {
