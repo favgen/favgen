@@ -10,7 +10,15 @@
   "homepage": "https://github.com/favgen/favgen",
   "repository": "https://github.com/favgen/favgen.git",
   "main": "lib/index.js",
+  "module": "lib/index.mjs",
   "types": "lib/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./lib/index.mjs",
+      "require": "./lib/index.js",
+      "types": "./lib/index.d.ts"
+    }
+  },
   "bin": "bin/index.js",
   "files": [
     "lib/",
