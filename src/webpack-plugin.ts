@@ -49,6 +49,7 @@ type Compiler = {
   webpack: {
     Compilation: {
       PROCESS_ASSETS_STAGE_ADDITIONS: number;
+      PROCESS_ASSETS_STAGE_REPORT?: number;
     };
     sources: {
       RawSource: RawSourceConstructor;
@@ -174,11 +175,14 @@ export default class FavgenWebpackPlugin {
 
   apply(compiler: Compiler): void {
     compiler.hooks.thisCompilation.tap("favgen-webpack-plugin", (compilation) => {
-      const stage = compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONS;
+      const emitStage = compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONS;
+      const injectStage = compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_REPORT
+        ?? emitStage + 1000;
       const { RawSource } = compiler.webpack.sources;
+      let htmlTags: string[] = [];
 
       compilation.hooks.processAssets.tapPromise(
-        { name: "favgen-webpack-plugin", stage },
+        { name: "favgen-webpack-plugin", stage: emitStage },
         async () => {
           if (!this.sourcePath || this.sourcePath.trim().length === 0) {
             throw new Error("favgen-webpack-plugin: `source` option is required.");
@@ -220,25 +224,35 @@ export default class FavgenWebpackPlugin {
               compilation.emitAsset(outputFilename, new RawSource(outputSource));
             });
 
-            const htmlTags = getHtmlTagStrings(publicPath, this.assetsPath, hasSvgIcon);
-            Object.entries(compilation.assets).forEach(([filename, asset]) => {
-              if (!filename.endsWith(".html")) {
-                return;
-              }
-
-              const currentSource = asset.source();
-              const htmlText = Buffer.isBuffer(currentSource)
-                ? currentSource.toString("utf8")
-                : String(currentSource);
-              const nextHtmlText = injectTagsIntoHtml(htmlText, htmlTags);
-
-              if (nextHtmlText !== htmlText) {
-                compilation.updateAsset(filename, new RawSource(nextHtmlText));
-              }
-            });
+            htmlTags = getHtmlTagStrings(publicPath, this.assetsPath, hasSvgIcon);
           } finally {
             await fs.rm(tempDirPath, { recursive: true, force: true });
           }
+        },
+      );
+
+      compilation.hooks.processAssets.tapPromise(
+        { name: "favgen-webpack-plugin-html-injection", stage: injectStage },
+        async () => {
+          if (htmlTags.length === 0) {
+            return;
+          }
+
+          Object.entries(compilation.assets).forEach(([filename, asset]) => {
+            if (!filename.endsWith(".html")) {
+              return;
+            }
+
+            const currentSource = asset.source();
+            const htmlText = Buffer.isBuffer(currentSource)
+              ? currentSource.toString("utf8")
+              : String(currentSource);
+            const nextHtmlText = injectTagsIntoHtml(htmlText, htmlTags);
+
+            if (nextHtmlText !== htmlText) {
+              compilation.updateAsset(filename, new RawSource(nextHtmlText));
+            }
+          });
         },
       );
     });
