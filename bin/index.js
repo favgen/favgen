@@ -15,10 +15,8 @@ program
   .description("Produce a set of favicons from a single input file.")
   .argument("<inputPath>", "Input icon path")
   .option("-o, --output <path>", "Output directory path", "__favicons__")
-  .option("--prefix <name>", "Icon prefix", "favicon")
   .option("--colors <number>", "Color paleete size, between 2 and 256", 64)
-  .option("--include16", "Produce 16x16 .ico file", false)
-  .action((filepath, { output: outputDir, prefix, colors, include16 }) => {
+  .action(async (filepath, { output: outputDir, colors }) => {
     const colorsPaletteSize = parseInt(colors, 10);
     const isValidPaletteSize =
       Number.isNaN(colorsPaletteSize) ||
@@ -30,11 +28,11 @@ program
       );
     }
 
-    const inputPath = path.join(CWD, filepath);
+    const inputPath = path.isAbsolute(filepath) ? filepath : path.join(CWD, filepath);
     const outputPath = path.isAbsolute(outputDir)
       ? outputDir
       : path.join(CWD, outputDir);
-    produceIcons(inputPath, outputPath, prefix, colorsPaletteSize, include16);
+    await produceIcons(inputPath, outputPath, colorsPaletteSize);
   });
 
 program.parse();
