@@ -43,7 +43,9 @@ class RawSource {
 }
 
 async function withTempDir(runTest) {
-  const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "favgen-webpack-test-"));
+  const tempDir = await fs.mkdtemp(
+    path.join(os.tmpdir(), "favgen-webpack-test-"),
+  );
   try {
     await runTest(tempDir);
   } finally {
@@ -63,7 +65,8 @@ async function writeSvgIcon(filepath) {
 }
 
 async function writePngIcon(filepath) {
-  const pngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=";
+  const pngBase64 =
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=";
   await fs.writeFile(filepath, Buffer.from(pngBase64, "base64"));
 }
 
@@ -112,7 +115,11 @@ async function runPluginBuild({
   publicPath = "/",
   htmlText = "<html><head></head><body></body></html>",
 }) {
-  const { compiler, compilation } = createCompiler({ root, publicPath, htmlText });
+  const { compiler, compilation } = createCompiler({
+    root,
+    publicPath,
+    htmlText,
+  });
   plugin.apply(compiler);
   compiler.hooks.thisCompilation.call(compilation);
   await compilation.hooks.processAssets.promise();
@@ -166,14 +173,22 @@ describe("FavgenWebpackPlugin", () => {
 
       const manifest = JSON.parse(readAsset("favicons/manifest.webmanifest"));
       expect(manifest.icons).toEqual([
-        { src: "/app/favicons/icon-192.png", type: "image/png", sizes: "192x192" },
+        {
+          src: "/app/favicons/icon-192.png",
+          type: "image/png",
+          sizes: "192x192",
+        },
         {
           src: "/app/favicons/icon-mask.png",
           type: "image/png",
           sizes: "512x512",
           purpose: "maskable",
         },
-        { src: "/app/favicons/icon-512.png", type: "image/png", sizes: "512x512" },
+        {
+          src: "/app/favicons/icon-512.png",
+          type: "image/png",
+          sizes: "512x512",
+        },
       ]);
     });
   });
@@ -228,7 +243,9 @@ describe("FavgenWebpackPlugin", () => {
       expect(html).toContain('href="static/icons/apple-touch-icon.png"');
       expect(html).toContain('href="static/icons/manifest.webmanifest"');
 
-      const manifest = JSON.parse(readAsset("static/icons/manifest.webmanifest"));
+      const manifest = JSON.parse(
+        readAsset("static/icons/manifest.webmanifest"),
+      );
       expect(manifest.icons.map((icon) => icon.src)).toEqual([
         "static/icons/icon-192.png",
         "static/icons/icon-mask.png",

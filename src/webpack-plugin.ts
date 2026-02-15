@@ -77,7 +77,11 @@ function normalizePublicPath(publicPath: string | "auto" | undefined): string {
   return publicPath;
 }
 
-function getAssetUrl(publicPath: string, assetsPath: string, filename: string): string {
+function getAssetUrl(
+  publicPath: string,
+  assetsPath: string,
+  filename: string,
+): string {
   const relativePath = assetsPath
     ? path.posix.join(assetsPath, filename)
     : filename;
@@ -110,9 +114,8 @@ function rewriteManifest(
   if (Array.isArray(manifest.icons)) {
     manifest.icons = manifest.icons.map((icon) => {
       const sourcePath = icon.src;
-      const iconFilename = typeof sourcePath === "string"
-        ? path.posix.basename(sourcePath)
-        : "";
+      const iconFilename =
+        typeof sourcePath === "string" ? path.posix.basename(sourcePath) : "";
 
       return {
         ...icon,
@@ -130,16 +133,32 @@ function getHtmlTagStrings(
   hasSvgIcon: boolean,
 ): string[] {
   const tags = [
-    `<link rel="icon" href="${getAssetUrl(publicPath, assetsPath, "favicon.ico")}" sizes="any">`,
-    `<link rel="apple-touch-icon" href="${getAssetUrl(publicPath, assetsPath, "apple-touch-icon.png")}">`,
-    `<link rel="manifest" href="${getAssetUrl(publicPath, assetsPath, "manifest.webmanifest")}">`,
+    `<link rel="icon" href="${getAssetUrl(
+      publicPath,
+      assetsPath,
+      "favicon.ico",
+    )}" sizes="any">`,
+    `<link rel="apple-touch-icon" href="${getAssetUrl(
+      publicPath,
+      assetsPath,
+      "apple-touch-icon.png",
+    )}">`,
+    `<link rel="manifest" href="${getAssetUrl(
+      publicPath,
+      assetsPath,
+      "manifest.webmanifest",
+    )}">`,
   ];
 
   if (hasSvgIcon) {
     tags.splice(
       1,
       0,
-      `<link rel="icon" href="${getAssetUrl(publicPath, assetsPath, "icon.svg")}" type="image/svg+xml">`,
+      `<link rel="icon" href="${getAssetUrl(
+        publicPath,
+        assetsPath,
+        "icon.svg",
+      )}" type="image/svg+xml">`,
     );
   }
 
@@ -174,87 +193,110 @@ export default class FavgenWebpackPlugin {
   }
 
   apply(compiler: Compiler): void {
-    compiler.hooks.thisCompilation.tap("favgen-webpack-plugin", (compilation) => {
-      const emitStage = compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONS;
-      const injectStage = compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_REPORT
-        ?? emitStage + 1000;
-      const { RawSource } = compiler.webpack.sources;
-      let htmlTags: string[] = [];
+    compiler.hooks.thisCompilation.tap(
+      "favgen-webpack-plugin",
+      (compilation) => {
+        const emitStage =
+          compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_ADDITIONS;
+        const injectStage =
+          compiler.webpack.Compilation.PROCESS_ASSETS_STAGE_REPORT ??
+          emitStage + 1000;
+        const { RawSource } = compiler.webpack.sources;
+        let htmlTags: string[] = [];
 
-      compilation.hooks.processAssets.tapPromise(
-        { name: "favgen-webpack-plugin", stage: emitStage },
-        async () => {
-          if (!this.sourcePath || this.sourcePath.trim().length === 0) {
-            throw new Error("favgen-webpack-plugin: `source` option is required.");
-          }
-          if (!isValidPaletteSize(this.paletteSize)) {
-            throw new Error(
-              "favgen-webpack-plugin: `colors` must be an integer between 2 and 256.",
+        compilation.hooks.processAssets.tapPromise(
+          { name: "favgen-webpack-plugin", stage: emitStage },
+          async () => {
+            if (!this.sourcePath || this.sourcePath.trim().length === 0) {
+              throw new Error(
+                "favgen-webpack-plugin: `source` option is required.",
+              );
+            }
+            if (!isValidPaletteSize(this.paletteSize)) {
+              throw new Error(
+                "favgen-webpack-plugin: `colors` must be an integer between 2 and 256.",
+              );
+            }
+
+            const projectRoot = compiler.options.context ?? process.cwd();
+            const publicPath = normalizePublicPath(
+              compiler.options.output?.publicPath,
             );
-          }
+            const resolvedSourcePath = path.isAbsolute(this.sourcePath)
+              ? this.sourcePath
+              : path.resolve(projectRoot, this.sourcePath);
 
-          const projectRoot = compiler.options.context ?? process.cwd();
-          const publicPath = normalizePublicPath(compiler.options.output?.publicPath);
-          const resolvedSourcePath = path.isAbsolute(this.sourcePath)
-            ? this.sourcePath
-            : path.resolve(projectRoot, this.sourcePath);
-
-          const tempDirPath = await fs.mkdtemp(path.join(os.tmpdir(), "favgen-webpack-"));
-
-          try {
-            await produceIcons(resolvedSourcePath, tempDirPath, this.paletteSize);
-            const iconFilenames = (await fs.readdir(tempDirPath)).sort();
-            const hasSvgIcon = iconFilenames.includes("icon.svg");
-
-            const generatedAssets = await Promise.all(
-              iconFilenames.map(async (filename) => ({
-                filename,
-                source: await fs.readFile(path.join(tempDirPath, filename)),
-              })),
+            const tempDirPath = await fs.mkdtemp(
+              path.join(os.tmpdir(), "favgen-webpack-"),
             );
 
-            generatedAssets.forEach((asset) => {
-              const outputFilename = this.assetsPath
-                ? path.posix.join(this.assetsPath, asset.filename)
-                : asset.filename;
-              const outputSource = asset.filename === "manifest.webmanifest"
-                ? rewriteManifest(asset.source, publicPath, this.assetsPath)
-                : asset.source;
+            try {
+              await produceIcons(
+                resolvedSourcePath,
+                tempDirPath,
+                this.paletteSize,
+              );
+              const iconFilenames = (await fs.readdir(tempDirPath)).sort();
+              const hasSvgIcon = iconFilenames.includes("icon.svg");
 
-              compilation.emitAsset(outputFilename, new RawSource(outputSource));
-            });
+              const generatedAssets = await Promise.all(
+                iconFilenames.map(async (filename) => ({
+                  filename,
+                  source: await fs.readFile(path.join(tempDirPath, filename)),
+                })),
+              );
 
-            htmlTags = getHtmlTagStrings(publicPath, this.assetsPath, hasSvgIcon);
-          } finally {
-            await fs.rm(tempDirPath, { recursive: true, force: true });
-          }
-        },
-      );
+              generatedAssets.forEach((asset) => {
+                const outputFilename = this.assetsPath
+                  ? path.posix.join(this.assetsPath, asset.filename)
+                  : asset.filename;
+                const outputSource =
+                  asset.filename === "manifest.webmanifest"
+                    ? rewriteManifest(asset.source, publicPath, this.assetsPath)
+                    : asset.source;
 
-      compilation.hooks.processAssets.tapPromise(
-        { name: "favgen-webpack-plugin-html-injection", stage: injectStage },
-        async () => {
-          if (htmlTags.length === 0) {
-            return;
-          }
+                compilation.emitAsset(
+                  outputFilename,
+                  new RawSource(outputSource),
+                );
+              });
 
-          Object.entries(compilation.assets).forEach(([filename, asset]) => {
-            if (!filename.endsWith(".html")) {
+              htmlTags = getHtmlTagStrings(
+                publicPath,
+                this.assetsPath,
+                hasSvgIcon,
+              );
+            } finally {
+              await fs.rm(tempDirPath, { recursive: true, force: true });
+            }
+          },
+        );
+
+        compilation.hooks.processAssets.tapPromise(
+          { name: "favgen-webpack-plugin-html-injection", stage: injectStage },
+          async () => {
+            if (htmlTags.length === 0) {
               return;
             }
 
-            const currentSource = asset.source();
-            const htmlText = Buffer.isBuffer(currentSource)
-              ? currentSource.toString("utf8")
-              : String(currentSource);
-            const nextHtmlText = injectTagsIntoHtml(htmlText, htmlTags);
+            Object.entries(compilation.assets).forEach(([filename, asset]) => {
+              if (!filename.endsWith(".html")) {
+                return;
+              }
 
-            if (nextHtmlText !== htmlText) {
-              compilation.updateAsset(filename, new RawSource(nextHtmlText));
-            }
-          });
-        },
-      );
-    });
+              const currentSource = asset.source();
+              const htmlText = Buffer.isBuffer(currentSource)
+                ? currentSource.toString("utf8")
+                : String(currentSource);
+              const nextHtmlText = injectTagsIntoHtml(htmlText, htmlTags);
+
+              if (nextHtmlText !== htmlText) {
+                compilation.updateAsset(filename, new RawSource(nextHtmlText));
+              }
+            });
+          },
+        );
+      },
+    );
   }
 }

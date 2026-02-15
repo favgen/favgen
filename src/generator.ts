@@ -129,14 +129,14 @@ async function produceIcons(
   const iconConfigs = baseIconConfigs
     .filter((cfg) => isSvgBuf || cfg.name !== "icon.svg")
     .map((cfg) => {
-    const mappedCfg = { ...cfg };
+      const mappedCfg = { ...cfg };
 
-    if (mappedCfg.name.endsWith(".png")) {
-      mappedCfg.colorsPaletteSize = paletteSize;
-    }
+      if (mappedCfg.name.endsWith(".png")) {
+        mappedCfg.colorsPaletteSize = paletteSize;
+      }
 
-    return mappedCfg;
-  });
+      return mappedCfg;
+    });
 
   const iconsGenerationSeries = iconConfigs.map(async (cfg) => {
     const outputBuffer = await getIconBuffer(rawIconBuf, cfg);
@@ -159,7 +159,10 @@ async function produceIcons(
     ],
   };
   const manifestText = JSON.stringify(manifestFile, null, 2);
-  await fs.writeFile(path.join(outputDirPath, "manifest.webmanifest"), manifestText);
+  await fs.writeFile(
+    path.join(outputDirPath, "manifest.webmanifest"),
+    manifestText,
+  );
 }
 
 export default produceIcons;

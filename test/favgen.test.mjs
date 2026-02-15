@@ -9,7 +9,10 @@ import { describe, it, expect } from "vitest";
 
 import { produceIcons } from "../lib/index.js";
 
-const PROJECT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const PROJECT_ROOT = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
 const CLI_PATH = path.join(PROJECT_ROOT, "bin", "index.js");
 
 const SVG_OUTPUT_FILES = [
@@ -122,7 +125,10 @@ describe("produceIcons API", () => {
       const files = await getOutputFiles(outputPath);
       expect(files).toEqual(SVG_OUTPUT_FILES);
 
-      const svgIcon = await fs.readFile(path.join(outputPath, "icon.svg"), "utf8");
+      const svgIcon = await fs.readFile(
+        path.join(outputPath, "icon.svg"),
+        "utf8",
+      );
       expect(svgIcon).toContain("<svg");
 
       const manifestText = await fs.readFile(
@@ -166,10 +172,18 @@ describe("produceIcons API", () => {
 
       await produceIcons(inputPath, outputPath);
 
-      const icon192 = await sharp(path.join(outputPath, "icon-192.png")).metadata();
-      const icon512 = await sharp(path.join(outputPath, "icon-512.png")).metadata();
-      const iconMask = await sharp(path.join(outputPath, "icon-mask.png")).metadata();
-      const appleTouch = await sharp(path.join(outputPath, "apple-touch-icon.png")).metadata();
+      const icon192 = await sharp(
+        path.join(outputPath, "icon-192.png"),
+      ).metadata();
+      const icon512 = await sharp(
+        path.join(outputPath, "icon-512.png"),
+      ).metadata();
+      const iconMask = await sharp(
+        path.join(outputPath, "icon-mask.png"),
+      ).metadata();
+      const appleTouch = await sharp(
+        path.join(outputPath, "apple-touch-icon.png"),
+      ).metadata();
 
       expect(icon192.width).toBe(192);
       expect(icon192.height).toBe(192);
@@ -190,7 +204,9 @@ describe("produceIcons API", () => {
 
       await produceIcons(inputPath, outputPath);
 
-      const appleBounds = await getOpaqueBounds(path.join(outputPath, "apple-touch-icon.png"));
+      const appleBounds = await getOpaqueBounds(
+        path.join(outputPath, "apple-touch-icon.png"),
+      );
       expect(appleBounds).toEqual({
         width: 180,
         height: 180,
@@ -200,7 +216,9 @@ describe("produceIcons API", () => {
         maxY: 159,
       });
 
-      const maskBounds = await getOpaqueBounds(path.join(outputPath, "icon-mask.png"));
+      const maskBounds = await getOpaqueBounds(
+        path.join(outputPath, "icon-mask.png"),
+      );
       expect(maskBounds).toEqual({
         width: 512,
         height: 512,
@@ -249,7 +267,9 @@ describe("CLI", () => {
 
       const result = runCli([missingInputPath, "-o", outputPath]);
       expect(result.status).not.toBe(0);
-      expect(`${result.stderr}\n${result.stdout}`).toMatch(/ENOENT|no such file/i);
+      expect(`${result.stderr}\n${result.stdout}`).toMatch(
+        /ENOENT|no such file/i,
+      );
     });
   });
 });

@@ -28,7 +28,9 @@ program
       );
     }
 
-    const inputPath = path.isAbsolute(filepath) ? filepath : path.join(CWD, filepath);
+    const inputPath = path.isAbsolute(filepath)
+      ? filepath
+      : path.join(CWD, filepath);
     const outputPath = path.isAbsolute(outputDir)
       ? outputDir
       : path.join(CWD, outputDir);

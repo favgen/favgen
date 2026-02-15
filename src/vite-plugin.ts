@@ -53,7 +53,11 @@ function normalizeAssetsPath(rawPath: string | undefined): string {
   return rawPath.replace(/^\/+/, "").replace(/\/+$/, "");
 }
 
-function getAssetUrl(base: string, assetsPath: string, filename: string): string {
+function getAssetUrl(
+  base: string,
+  assetsPath: string,
+  filename: string,
+): string {
   const relativePath = assetsPath
     ? path.posix.join(assetsPath, filename)
     : filename;
@@ -90,9 +94,8 @@ function rewriteManifest(
   if (Array.isArray(manifest.icons)) {
     manifest.icons = manifest.icons.map((icon) => {
       const sourcePath = icon.src;
-      const iconFilename = typeof sourcePath === "string"
-        ? path.posix.basename(sourcePath)
-        : "";
+      const iconFilename =
+        typeof sourcePath === "string" ? path.posix.basename(sourcePath) : "";
       return {
         ...icon,
         src: getAssetUrl(base, assetsPath, iconFilename),
@@ -201,14 +204,18 @@ export default function favgenVitePlugin(
         })),
       );
 
-      generatedAssets = assets.map((asset) => (
+      generatedAssets = assets.map((asset) =>
         asset.filename === "manifest.webmanifest"
           ? {
               ...asset,
-              source: rewriteManifest(asset.source, config?.base ?? "/", assetsPath),
+              source: rewriteManifest(
+                asset.source,
+                config?.base ?? "/",
+                assetsPath,
+              ),
             }
-          : asset
-      ));
+          : asset,
+      );
     },
     generateBundle() {
       generatedAssets.forEach((asset) => {

@@ -38,7 +38,8 @@ async function writeSvgIcon(filepath) {
 }
 
 async function writePngIcon(filepath) {
-  const pngBase64 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=";
+  const pngBase64 =
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII=";
   await fs.writeFile(filepath, Buffer.from(pngBase64, "base64"));
 }
 
@@ -89,14 +90,22 @@ describe("favgenVitePlugin", () => {
       expect(manifestAsset).toBeDefined();
       const manifest = JSON.parse(manifestAsset.source.toString("utf8"));
       expect(manifest.icons).toEqual([
-        { src: "/app/favicons/icon-192.png", type: "image/png", sizes: "192x192" },
+        {
+          src: "/app/favicons/icon-192.png",
+          type: "image/png",
+          sizes: "192x192",
+        },
         {
           src: "/app/favicons/icon-mask.png",
           type: "image/png",
           sizes: "512x512",
           purpose: "maskable",
         },
-        { src: "/app/favicons/icon-512.png", type: "image/png", sizes: "512x512" },
+        {
+          src: "/app/favicons/icon-512.png",
+          type: "image/png",
+          sizes: "512x512",
+        },
       ]);
     });
   });
