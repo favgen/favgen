@@ -31,3 +31,19 @@ const outputDirPath = "__favicons__"
 const paletteSize = 64 // default value
 produceIcons(inputFilePath, outputDirPath, paletteSize)
 ```
+
+Vite plugin usage:
+```js
+import { defineConfig } from "vite"
+import { favgenVitePlugin } from "favgen"
+
+export default defineConfig({
+  plugins: [
+    favgenVitePlugin({
+      source: "src/assets/logo.svg",
+      colors: 64,
+      assetsPath: "favicons",
+    }),
+  ],
+})
+```
