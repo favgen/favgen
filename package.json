@@ -1,6 +1,6 @@
 {
   "name": "favgen",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "CLI tool to generate a set of favicons from a single input file.",
   "keywords": [
     "favicon"
