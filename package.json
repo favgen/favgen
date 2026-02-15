@@ -22,6 +22,8 @@
   "scripts": {
     "build": "tsc --project tsconfig.json",
     "build:dev": "tsc --watch --project tsconfig.json",
+    "test": "npm run build && vitest run",
+    "test:watch": "npm run build && vitest",
     "prepublishOnly": "npm run build",
     "huskify": "husky install && husky add .husky/pre-commit 'npx lint-staged' && git add .husky/pre-commit",
     "lint": "eslint --ext .js,.cjs,.mjs,.ts,.cts,.mts --fix --ignore-path .gitignore --cache",
@@ -49,6 +51,7 @@
     "husky": "^8.0.1",
     "lint-staged": "^13.0.3",
     "prettier": "^2.7.1",
-    "typescript": "^4.7.4"
+    "typescript": "^4.7.4",
+    "vitest": "^3.2.4"
   }
 }
