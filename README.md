@@ -83,3 +83,42 @@ Generated files:
 - `manifest.webmanifest`
 
 Manifest icon URLs and injected HTML links are automatically adjusted for Vite `base` and `assetsPath` settings.
+
+## Webpack plugin usage
+
+Install:
+```bash
+npm i favgen
+```
+
+Configure in your webpack config:
+```js
+const FavgenWebpackPlugin = require("favgen").FavgenWebpackPlugin
+
+module.exports = {
+  // ...rest of config
+  plugins: [
+    new FavgenWebpackPlugin({
+      source: "src/assets/logo.svg",
+      colors: 64,
+      assetsPath: "favicons",
+    }),
+  ],
+}
+```
+
+Webpack plugin options:
+- `source` (required): path to source image (SVG, PNG, JPEG, WebP, GIF, AVIF, TIFF)
+- `colors` (optional): PNG palette size between 2 and 256 (`64` by default)
+- `assetsPath` (optional): subdirectory where generated assets are emitted (e.g. `favicons`)
+
+The plugin runs during webpack compilation and:
+- generates favicon assets using the same logic as CLI/API
+- emits assets into compilation output
+- injects links into generated `.html` assets:
+  - `favicon.ico`
+  - `icon.svg` (only when source is SVG)
+  - `apple-touch-icon.png`
+  - `manifest.webmanifest`
+
+Manifest icon URLs and injected HTML links are automatically adjusted for webpack `output.publicPath` and `assetsPath`.
