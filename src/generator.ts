@@ -14,7 +14,7 @@ type IconConfig = {
 
 const baseIconConfigs: IconConfig[] = [
   {
-    name: "favicon.svg",
+    name: "icon.svg",
   },
   {
     // no colors palette size otherwise its color profile is off
@@ -23,14 +23,21 @@ const baseIconConfigs: IconConfig[] = [
     pxSize: 32,
   },
   {
-    name: "favicon-192.png",
+    name: "icon-192.png",
     pxSize: 192,
     colorsPaletteSize: 64,
   },
   {
-    name: "favicon-512.png",
+    name: "icon-512.png",
     pxSize: 512,
     colorsPaletteSize: 64,
+  },
+  {
+    name: "icon-mask.png",
+    pxSize: 512,
+    colorsPaletteSize: 64,
+    // 512 - (52 * 2) = 408 which stays in the recommended 409px safe zone
+    padding: 52,
   },
   {
     name: "apple-touch-icon.png",
@@ -44,9 +51,19 @@ function buildPng(
   rawBuffer: Buffer,
   { pxSize, colorsPaletteSize, padding }: IconConfig,
 ): Sharp {
+  if (pxSize === undefined) {
+    throw Error("PNG output size is not defined.");
+  }
+
+  const resizePxSize = padding ? pxSize - padding * 2 : pxSize;
+  if (resizePxSize <= 0) {
+    throw Error("Padding is too large for the output size.");
+  }
+
   const outputIcon = sharp(rawBuffer)
-    .resize(pxSize, pxSize)
+    .resize(resizePxSize, resizePxSize)
     .png({ compressionLevel: 9, colors: colorsPaletteSize });
+
   return padding
     ? outputIcon.extend({
         top: padding,
@@ -101,33 +118,18 @@ function getIconBuffer(
 async function produceIcons(
   inputFilePath: string,
   outputDirPath: string,
-  prefix: string = "favicon",
   paletteSize: number = 64,
-  include16: boolean = false,
 ) {
   await fs.access(inputFilePath);
-
-  try {
-    await fs.access(outputDirPath);
-  } catch (e) {
-    if (e instanceof Error && e.message.includes("ENOENT")) {
-      fs.mkdir(outputDirPath);
-    } else {
-      throw e;
-    }
-  }
+  await fs.mkdir(outputDirPath, { recursive: true });
 
   const rawIconBuf = await fs.readFile(inputFilePath);
   const isSvgBuf = isSvg(rawIconBuf);
 
-  let iconConfigs = baseIconConfigs.map((cfg) => {
+  const iconConfigs = baseIconConfigs
+    .filter((cfg) => isSvgBuf || cfg.name !== "icon.svg")
+    .map((cfg) => {
     const mappedCfg = { ...cfg };
-    if (!isSvgBuf && mappedCfg.name.endsWith(".svg")) {
-      mappedCfg.name = mappedCfg.name.replace(".svg", ".png");
-      mappedCfg.pxSize = 32;
-    }
-
-    mappedCfg.name = mappedCfg.name.replace("favicon", prefix);
 
     if (mappedCfg.name.endsWith(".png")) {
       mappedCfg.colorsPaletteSize = paletteSize;
@@ -135,40 +137,29 @@ async function produceIcons(
 
     return mappedCfg;
   });
-  if (include16) {
-    const ico = iconConfigs.find((cfg) =>
-      cfg.name.endsWith(".ico"),
-    ) as IconConfig;
-    const icoNameWithoutExt = ico.name.slice(0, -4);
-    iconConfigs.push({ ...ico, name: `${icoNameWithoutExt}-32.ico` });
-    iconConfigs.push({
-      ...ico,
-      name: `${icoNameWithoutExt}-16.ico`,
-      pxSize: 16,
-    });
-    iconConfigs = iconConfigs.filter((cfg) => cfg !== ico);
-  }
 
   const iconsGenerationSeries = iconConfigs.map(async (cfg) => {
-    const iconName = cfg.name.replace("favicon", prefix);
-    const iconCfg = cfg.name.endsWith("png")
-      ? { ...cfg, colorsPaletteSize: paletteSize, name: iconName }
-      : { ...cfg, name: iconName };
-    const outputBuffer = await getIconBuffer(rawIconBuf, iconCfg);
+    const outputBuffer = await getIconBuffer(rawIconBuf, cfg);
 
-    return fs.writeFile(path.join(outputDirPath, iconCfg.name), outputBuffer);
+    return fs.writeFile(path.join(outputDirPath, cfg.name), outputBuffer);
   });
 
   await Promise.all(iconsGenerationSeries);
 
   const manifestFile = {
     icons: [
-      { src: `/${prefix}-192.png`, type: "image/png", sizes: "192x192" },
-      { src: `/${prefix}-512.png`, type: "image/png", sizes: "512x512" },
+      { src: "/icon-192.png", type: "image/png", sizes: "192x192" },
+      {
+        src: "/icon-mask.png",
+        type: "image/png",
+        sizes: "512x512",
+        purpose: "maskable",
+      },
+      { src: "/icon-512.png", type: "image/png", sizes: "512x512" },
     ],
   };
   const manifestText = JSON.stringify(manifestFile, null, 2);
-  fs.writeFile(path.join(outputDirPath, "manifest.webmanifest"), manifestText);
+  await fs.writeFile(path.join(outputDirPath, "manifest.webmanifest"), manifestText);
 }
 
 export default produceIcons;
